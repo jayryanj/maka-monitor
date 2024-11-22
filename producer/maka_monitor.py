@@ -56,14 +56,14 @@ class MakaMonitor:
     async def _send_cpu_metrics(self):
         while True:
             cpu_usage = psutil.cpu_percent(interval=1)
-            self.producer.send(topic='cpu_utilization_test', key=self.node_id, value={'cpu_percent': cpu_usage})
+            self.producer.send(topic='cpu_utilization', key=self.node_id, value={'cpu_percent': cpu_usage})
             await asyncio.sleep(self.KAFKA_PRODUCER_DELAY, self.event_loop)
 
 
     async def _send_mem_metrics(self):
         while True:
-            mem_usage = psutil.virtual_memory()
-            self.producer.send(topic='mem_utilization_test', key=self.node_id, value={"mem_percent": mem_usage})
+            mem_usage = psutil.virtual_memory().percent
+            self.producer.send(topic='memory_utilization', key=self.node_id, value={"mem_percent": mem_usage})
             await asyncio.sleep(self.KAFKA_PRODUCER_DELAY, self.event_loop)
 
 

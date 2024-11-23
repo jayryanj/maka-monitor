@@ -4,21 +4,23 @@ from kafka.errors import NoBrokersAvailable
 from prometheus_client import start_http_server, Gauge
 import json
 
-# Prometheus metrics
-
-
 # Kafka Consumer setup
 class MakaAggregator:
     def __init__(self):
+        self.KAFKA_INIT_RETRIES = 20
+        self.KAFKA_INIT_DELAY = 1 # in seconds
+        self.KAFKA_PRODUCER_RETRIES = 5
+        self.KAFKA_PRODUCER_DELAY = 1
         self.cpu_gauge = Gauge('cpu_utilization', 'CPU usage of the producer', ['producer_id'])
         self.memory_gauge = Gauge('memory_utilization', 'Memory usage of the producer', ['producer_id'])
-        for retry in range(20):
+
+        for retry in range(self.KAFKA_INIT_RETRIES):
             try:
                 self.consumer = KafkaConsumer(
                     "cpu_utilization",
                     "memory_utilization",
                     bootstrap_servers='kafka:9093',
-                    auto_offset_reset='latest',
+                    auto_offset_reset='earliest',
                     value_deserializer=lambda v: json.loads(v.decode('utf-8')),
                     key_deserializer=lambda v: v.decode('utf-8')
                 )
@@ -26,14 +28,16 @@ class MakaAggregator:
                 break
             except NoBrokersAvailable:
                 print("Kafka broker not available. Retrying...")
-            time.sleep(1)
+            time.sleep(self.KAFKA_INIT_DELAY)
         else:
             raise Exception("Failed to connect to a Kafka broker.")
 
-    def process_metrics(self):
+    def consume_messages(self):
         for message in self.consumer:
             metrics_event = message.value
             topic = message.topic
+
+            print(message)
 
             if topic == "cpu_utilization":
                 cpu_usage = metrics_event['cpu_percent']
@@ -48,5 +52,5 @@ if __name__ == "__main__":
 
     # Process metrics from Kafka
     aggregator = MakaAggregator()
-    aggregator.process_metrics()
+    aggregator.consume_messages()
 

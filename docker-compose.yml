@@ -37,10 +37,22 @@ services:
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9093
     depends_on:
       - kafka
-  server:
+  producer-1:
     build:
       context: ./producer
-    container_name: server
+    container_name: producer-1
+    depends_on:
+      - kafka
+  producer-2:
+    build:
+      context: ./producer
+    container_name: producer-2
+    depends_on:
+      - kafka
+  producer-3:
+    build:
+      context: ./producer
+    container_name: producer-3
     depends_on:
       - kafka
   prometheus:

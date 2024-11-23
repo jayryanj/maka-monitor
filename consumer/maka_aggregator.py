@@ -19,10 +19,11 @@ class MakaAggregator:
                 self.consumer = KafkaConsumer(
                     "cpu_utilization",
                     "memory_utilization",
-                    bootstrap_servers='kafka:9093',
+                    bootstrap_servers=['kafka-1:9093','kafka-2:9093'],
                     auto_offset_reset='earliest',
                     value_deserializer=lambda v: json.loads(v.decode('utf-8')),
-                    key_deserializer=lambda v: v.decode('utf-8')
+                    key_deserializer=lambda v: v.decode('utf-8'),
+                    group_id="maka-aggregator-group"
                 )
                 print("Connected to Kafka broker")
                 break
@@ -33,11 +34,12 @@ class MakaAggregator:
             raise Exception("Failed to connect to a Kafka broker.")
 
     def consume_messages(self):
+        print("Consuming messages")
         for message in self.consumer:
             metrics_event = message.value
             topic = message.topic
 
-            print(message)
+            print(f"Messages: {message}")
 
             if topic == "cpu_utilization":
                 cpu_usage = metrics_event['cpu_percent']

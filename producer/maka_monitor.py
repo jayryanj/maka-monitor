@@ -22,7 +22,7 @@ class MakaMonitor:
         for retry in range(self.KAFKA_INIT_RETRIES):
             try:
                 self.producer = KafkaProducer(
-                    bootstrap_servers='kafka:9093',
+                    bootstrap_servers=['kafka-1:9093','kafka-2:9093'],
                     value_serializer=lambda v: json.dumps(v).encode('utf-8'),
                     key_serializer=lambda v: v.encode('utf-8')
                 )
